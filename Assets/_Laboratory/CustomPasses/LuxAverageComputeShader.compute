@@ -9,11 +9,11 @@
 #define DIGIT_TEXTURE_HEIGHT 9
 #define MAX_DIGIT_COUNT (SAMPLE_COUNT_PER_ROW / DIGIT_TEXTURE_WIDTH)
 
-TEXTURE2D_X(_Lux_Value_Buffer);
+Texture2D _Lux_Value_Buffer;
 uint2 _Buffer_Size;
 uint2 _Start_Offset;
 Texture2D _Number_Texture;
-RW_TEXTURE2D_X(float4, _Test_Result);
+RWTexture2D<float4> _Test_Result;
 
 groupshared float sampleLuxValues[SAMPLE_COUNT_PER_ROW * SAMPLE_COUNT_PER_ROW];
 
@@ -45,7 +45,8 @@ void CSMain (uint3 groupid : SV_GroupID, uint3 groupthreadid : SV_GroupThreadID,
 {
     uint2 pixelCoords = id.xy + _Start_Offset;
     uint sampleIndex = groupthreadid.x * SAMPLE_COUNT_PER_ROW + groupthreadid.y;
-    float2 value = _Lux_Value_Buffer[COORD_TEXTURE2D_X(pixelCoords)].xy;
+    //float2 value = _Lux_Value_Buffer[COORD_TEXTURE2D_X(pixelCoords)].xy;
+    float2 value = _Lux_Value_Buffer[pixelCoords].xy;
 
     if (pixelCoords.x < 0 || pixelCoords.x > _Buffer_Size.x)
     {        
@@ -144,7 +145,7 @@ void CSMain (uint3 groupid : SV_GroupID, uint3 groupthreadid : SV_GroupThreadID,
             digitPixelCoords.x -= DIGIT_TEXTURE_WIDTH;
         } 
         
-        if (digitIndex >= 0 && digitIndex < digitCount)
+        if (digitIndex >= 0 && digitIndex < (int)digitCount)
         {
             for (i = (digitCount - digitIndex - 1); i > 0; --i)
             {            
@@ -157,10 +158,10 @@ void CSMain (uint3 groupid : SV_GroupID, uint3 groupthreadid : SV_GroupThreadID,
             }
         }
 
-        _Test_Result[COORD_TEXTURE2D_X(pixelCoords)] = isHit ? hitColor : tileColor;
+        _Test_Result[pixelCoords] = isHit ? hitColor : tileColor;
     }
     else
     {
-        _Test_Result[COORD_TEXTURE2D_X(pixelCoords)] = value.y < 1.0 ? float4(0.0, 0.0, 0.0, 1.0) : tileColor;
+        _Test_Result[pixelCoords] = value.y < 1.0 ? float4(0.0, 0.0, 0.0, 1.0) : tileColor;
     }
 }

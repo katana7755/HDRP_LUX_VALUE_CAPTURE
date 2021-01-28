@@ -36,7 +36,7 @@ public class SharedColorRTResource : ScriptableObject
             case RequestedState.Scale:
                 {
                     ReleaseColorRT();
-                    m_ColorRT = RTHandles.Alloc(m_RequestedScale, TextureXR.slices, dimension: TextureXR.dimension, enableRandomWrite: m_RequestedEnableRandomWrite, colorFormat: _ColorRTFormat, autoGenerateMips: false, useDynamicScale: false, name: name);
+                    m_ColorRT = RTHandles.Alloc(m_RequestedScale, 1, dimension: TextureDimension.Tex2D, enableRandomWrite: m_RequestedEnableRandomWrite, colorFormat: _ColorRTFormat, autoGenerateMips: false, useDynamicScale: false, name: name);
                     
                     var size = m_ColorRT.GetScaledSize(new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight));
                     m_ActualWidth = size.x;
@@ -60,7 +60,7 @@ public class SharedColorRTResource : ScriptableObject
                     var ratio = (float)actualWidth / actualHeight;
                     m_ActualWidth = Mathf.CeilToInt(m_RequestedSize.y * ratio);
                     m_ActualHeight = m_RequestedSize.y;
-                    m_ColorRT = RTHandles.Alloc(m_ActualWidth, m_ActualHeight, TextureXR.slices, dimension: TextureXR.dimension, enableRandomWrite: m_RequestedEnableRandomWrite, colorFormat: _ColorRTFormat, autoGenerateMips: false, useDynamicScale: false, name: name);
+                    m_ColorRT = RTHandles.Alloc(m_ActualWidth, m_ActualHeight, 1, dimension: TextureDimension.Tex2D, enableRandomWrite: m_RequestedEnableRandomWrite, colorFormat: _ColorRTFormat, autoGenerateMips: false, useDynamicScale: false, name: name);
                 }
                 break;
         }

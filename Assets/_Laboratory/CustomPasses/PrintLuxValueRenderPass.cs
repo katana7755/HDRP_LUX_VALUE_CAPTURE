@@ -135,9 +135,6 @@ class PrintLuxValueRenderPass : CustomPass
         cmd.SetComputeTextureParam(_LuxAverageComputeShader, 0, ShaderProperties._Number_Texture, _NumberTexture);
         cmd.SetComputeTextureParam(_LuxAverageComputeShader, 0, ShaderProperties._Test_Result, _LuxAverageResource.GetColorRT());
         cmd.DispatchCompute(_LuxAverageComputeShader, 0, threadGroupX, threadGroupY, 1);
-
-        // 4) Render numbers based on the average result
-
     }
 
     protected override void Cleanup()

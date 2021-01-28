@@ -1045,7 +1045,7 @@ void FragCustom(PackedVaryingsToPS packedInput,
             float _Item4_Lux;
             float4 _Item4_Color;
             float4 _ItemEtc_Color;
-            TEXTURE2D_X(_Lux_Value_Buffer);
+            Texture2D _Lux_Value_Buffer;
             float2 _Lux_Value_RT_Scale;
 
             float4 FullScreenPass(Varyings varyings) : SV_Target
