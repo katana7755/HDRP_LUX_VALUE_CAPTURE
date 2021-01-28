@@ -123,12 +123,14 @@ class PrintLuxValueRenderPass : CustomPass
 
         // 3) Calculate average lux values in a compute shader
         var sampleCount = LuxViewerController.SAMPLE_COUNT_PER_ROW;
-        var threadGroupX = (valueRT.referenceSize.x + sampleCount - 1) / sampleCount;
-        var threadGroupY = (valueRT.referenceSize.x + sampleCount - 1) / sampleCount;
+        var tileCount = (valueRT.referenceSize.y + sampleCount - 1) / sampleCount;
+        var gridSize = tileCount * sampleCount;
+        var threadGroupX = tileCount;
+        var threadGroupY = tileCount;
         m_BufferSize[0] = valueRT.referenceSize.x;
         m_BufferSize[1] = valueRT.referenceSize.y;
-        m_StartOffset[0] = -(valueRT.referenceSize.x % sampleCount) / 2;
-        m_StartOffset[1] = -(valueRT.referenceSize.y % sampleCount) / 2;
+        m_StartOffset[0] = (valueRT.referenceSize.x - gridSize) / 2;
+        m_StartOffset[1] = (valueRT.referenceSize.y - gridSize) / 2;
         cmd.SetComputeTextureParam(_LuxAverageComputeShader, 0, ShaderProperties._Lux_Value_Buffer, valueRT);
         cmd.SetComputeIntParams(_LuxAverageComputeShader, ShaderProperties._Buffer_Size, m_BufferSize);
         cmd.SetComputeIntParams(_LuxAverageComputeShader, ShaderProperties._Start_Offset, m_StartOffset);
