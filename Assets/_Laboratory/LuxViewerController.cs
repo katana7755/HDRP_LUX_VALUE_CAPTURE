@@ -7,19 +7,23 @@ public class LuxViewerController : MonoBehaviour
 {
     [SerializeField] private Camera _TopViewCamera = null;
     [SerializeField] private GameObject _QuadViewerGO = null;
-    [SerializeField] private GameObject _QuadBakerGO = null;
+    [SerializeField] private GameObject[] _QuadBakerGOs = null;
     [SerializeField] private SharedColorRTResource _LuxValueResource = null;
     [SerializeField] private SharedColorRTResource _LuxColorResource = null;
     [SerializeField] private SharedColorRTResource _LuxAverageResource = null;
     [SerializeField] private GameObject _CaptureToolsRoot = null;
     [SerializeField] private RenderingMode _RenderingMode = RenderingMode.AsColor;
     [SerializeField] private QuadMode _QuadMode = QuadMode.Viwerer;
-    [SerializeField] private int _QuadCountX = 1;
-    [SerializeField] private int _QuadCountY = 1;
 
     private void Start()
     {       
-        m_QuadRenderingData = new QuadRenderingData(_QuadBakerGO);
+        m_QuadBakerInstances = new QuadBakerInstance[_QuadBakerGOs.Length];
+
+        for (var i = 0; i < _QuadBakerGOs.Length; ++i)
+        {
+            m_QuadBakerInstances[i] = new QuadBakerInstance(_QuadBakerGOs[i]);
+        }
+
         ValidateGraphicsResources();
     }
 
@@ -120,22 +124,32 @@ public class LuxViewerController : MonoBehaviour
             {
                 _CaptureToolsRoot.SetActive(true);
 
-                yield return s_WaitForEndOfFrame;
+                for (var i = 0; i < m_QuadBakerInstances.Length; ++i)
+                {           
+                    var bakerInstance = m_QuadBakerInstances[i];
+                    var x = bakerInstance._Transform.position.x;
+                    var y = _CaptureToolsRoot.transform.position.y;
+                    var z = bakerInstance._Transform.position.z;
+                    _CaptureToolsRoot.transform.position = new Vector3(x, y, z);
 
-#if UNITY_EDITOR
-                while (UnityEditor.ShaderUtil.anythingCompiling)
-                {
-                    yield return null; 
                     yield return s_WaitForEndOfFrame;
-                }
-#endif
 
-                var frameBuffer = RenderTexture.active;
-                RenderTexture.active = frameBuffer;
-                GenerateTexture(_LuxColorResource, ref m_QuadRenderingData._ColorTexture);
-                GenerateTexture(_LuxAverageResource, ref m_QuadRenderingData._AverageTexture);
-                ValidateRenderingMode();
+    #if UNITY_EDITOR
+                    while (UnityEditor.ShaderUtil.anythingCompiling)
+                    {
+                        yield return null; 
+                        yield return s_WaitForEndOfFrame;
+                    }
+    #endif
+
+                    var frameBuffer = RenderTexture.active;
+                    GenerateTexture(_LuxColorResource, ref bakerInstance._ColorTexture);
+                    GenerateTexture(_LuxAverageResource, ref bakerInstance._AverageTexture);
+                    RenderTexture.active = frameBuffer;
+                }
+
                 _CaptureToolsRoot.SetActive(false);
+                ValidateRenderingMode();
                 m_GenerateTexturesFlag = false;                
             }
             else
@@ -188,12 +202,15 @@ public class LuxViewerController : MonoBehaviour
         }
 #endif
 
-        if (m_QuadRenderingData == null)
+        if (m_QuadBakerInstances == null || m_QuadBakerInstances.Length <= 0)
         {
             return;
         }
 
-        m_QuadRenderingData.SetRenderingMode(_RenderingMode);
+        for (var i = 0; i < m_QuadBakerInstances.Length; ++i)
+        {
+            m_QuadBakerInstances[i].SetRenderingMode(_RenderingMode);
+        }
     }
 
     private void ValidateQuadMode()
@@ -202,11 +219,33 @@ public class LuxViewerController : MonoBehaviour
         {
             case QuadMode.Viwerer:
                 _QuadViewerGO.SetActive(true);
-                _QuadBakerGO.SetActive(false);
+
+#if UNITY_EDITOR
+                for (var i = 0; i < _QuadBakerGOs.Length; ++i)
+                {
+                    _QuadBakerGOs[i].SetActive(false);
+                }                
+#else
+                for (var i = 0; i < m_QuadBakerInstances.Length; ++i)
+                {
+                    m_QuadBakerInstances[i].SetActive(false);
+                }                
+#endif
                 break;
             case QuadMode.Baker:
                 _QuadViewerGO.SetActive(false);
-                _QuadBakerGO.SetActive(true);
+
+#if UNITY_EDITOR
+                for (var i = 0; i < _QuadBakerGOs.Length; ++i)
+                {
+                    _QuadBakerGOs[i].SetActive(true);
+                }  
+#else
+                for (var i = 0; i < m_QuadBakerInstances.Length; ++i)
+                {
+                    m_QuadBakerInstances[i].SetActive(true);
+                }                
+#endif                
                 break;
         }
     }    
@@ -218,7 +257,7 @@ public class LuxViewerController : MonoBehaviour
     }     
 
     private bool m_GenerateTexturesFlag = false;
-    private QuadRenderingData m_QuadRenderingData = null;
+    private QuadBakerInstance[] m_QuadBakerInstances = null;
 
     public const int SAMPLE_COUNT_PER_ROW = 32;
     private const float QUAD_SIZE = 10f; // 10 meter
@@ -242,15 +281,23 @@ public class LuxViewerController : MonoBehaviour
         public static readonly int _UnlitColorMap = Shader.PropertyToID("_UnlitColorMap");
     }
 
-    private class QuadRenderingData
-    {        
-        public Renderer _Renderer = null;
+    private class QuadBakerInstance
+    {   
         public Texture2D _ColorTexture = null;
         public Texture2D _AverageTexture = null;
 
-        public QuadRenderingData(GameObject go)
+        public Transform _Transform
         {
-            _Renderer = go.GetComponent<Renderer>();            
+            get
+            {
+                return m_GO.transform;
+            }
+        }
+
+        public QuadBakerInstance(GameObject go)
+        {
+            m_GO = go;
+            m_Renderer = m_GO.GetComponent<Renderer>();            
         }
 
         public void SetRenderingMode(RenderingMode renderingMode)
@@ -258,12 +305,20 @@ public class LuxViewerController : MonoBehaviour
             switch (renderingMode)
             {
                 case RenderingMode.AsColor:
-                    _Renderer.material.SetTexture(MaterialProperties._UnlitColorMap, _ColorTexture);        
+                    m_Renderer.material.SetTexture(MaterialProperties._UnlitColorMap, _ColorTexture);        
                     break;
                 case RenderingMode.AsAverage:
-                    _Renderer.material.SetTexture(MaterialProperties._UnlitColorMap, _AverageTexture);        
+                    m_Renderer.material.SetTexture(MaterialProperties._UnlitColorMap, _AverageTexture);        
                     break;
             }                     
         }
+
+        public void SetActive(bool active)
+        {
+            m_GO.SetActive(active);
+        }
+
+        private GameObject m_GO = null;     
+        private Renderer m_Renderer = null;        
     }
 }
