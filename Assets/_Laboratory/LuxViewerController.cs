@@ -69,6 +69,14 @@ public class LuxViewerController : MonoBehaviour
 
                 yield return s_WaitForEndOfFrame;
 
+#if UNITY_EDITOR
+                while (UnityEditor.ShaderUtil.anythingCompiling)
+                {
+                    yield return null; 
+                    yield return s_WaitForEndOfFrame;
+                }
+#endif
+
                 var frameBuffer = RenderTexture.active;
                 GenerateNumberTexture();
                 RenderTexture.active = frameBuffer;
