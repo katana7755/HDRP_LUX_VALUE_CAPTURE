@@ -1,1 +1,2 @@
 # HDRP_LUX_VALUE_CAPTURE
+2021.01.28 - First commit
