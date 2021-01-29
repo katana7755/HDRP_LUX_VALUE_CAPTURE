@@ -1268,6 +1268,6 @@ void FragCustom(PackedVaryingsToPS packedInput,
             ENDHLSL
         }
     }
-    CustomEditor "Rendering.HighDefinition.LitGUI"
-    //CustomEditor "LuxPrinterShaderGUI"
+    //CustomEditor "Rendering.HighDefinition.LitGUI"
+    CustomEditor "LuxPrinterShaderGUI"
 }

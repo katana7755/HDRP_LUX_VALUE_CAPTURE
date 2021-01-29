@@ -63,13 +63,14 @@ public class SharedColorRTResource : ScriptableObject
 
     public void ReleaseColorRT()
     {
-        if (m_ColorRT == null)
+        if (m_ColorRT != null)
         {
-            return;
+            m_ColorRT.Release();        
+            m_ColorRT = null;
         }
 
-        m_ColorRT.Release();        
-        m_ColorRT = null;
+        m_ActualWidth = -1;
+        m_ActualHeight = -1;
     }
 
     public bool IsValid()

@@ -13,6 +13,7 @@ Texture2D _Lux_Value_Buffer;
 uint2 _Buffer_Size;
 uint2 _Start_Offset;
 Texture2D _Number_Texture;
+Texture2D _Tile_Texture;
 RWTexture2D<float4> _Test_Result;
 
 groupshared float sampleLuxValues[SAMPLE_COUNT_PER_ROW * SAMPLE_COUNT_PER_ROW];
@@ -100,30 +101,7 @@ void CSMain (uint3 groupid : SV_GroupID, uint3 groupthreadid : SV_GroupThreadID,
 
     GroupMemoryBarrierWithGroupSync();
 
-    float4 tileColor = float4(0.0, 0.0, 0.0, 1.0);
-
-    if (groupid.x % 2 == 0)
-    {
-        if (groupid.y % 2 == 0)
-        {
-            tileColor = float4(0.0, 0.8, 0.0, 1.0);
-        }
-        else
-        {            
-            tileColor = float4(0.0, 0.0, 0.8, 1.0);
-        }        
-    }
-    else
-    {
-        if (groupid.y % 2 == 0)
-        {
-            tileColor = float4(0.0, 0.0, 0.8, 1.0);
-        }
-        else
-        {            
-            tileColor = float4(0.0, 0.8, 0.0, 1.0);
-        }                
-    }
+    float4 tileColor = _Tile_Texture[groupthreadid.xy];
 
     if (sampleLuxValues[1] > 0.0)
     {

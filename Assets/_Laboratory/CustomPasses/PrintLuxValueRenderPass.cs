@@ -14,6 +14,7 @@ class PrintLuxValueRenderPass : CustomPass
     [SerializeField] private SharedColorRTResource _LuxColorResource = null;
     [SerializeField] private SharedColorRTResource _LuxAverageResource = null;
     [SerializeField] private Texture2D _NumberTexture = null;
+    [SerializeField] private Texture2D _NumberTileTexture = null;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
@@ -135,6 +136,7 @@ class PrintLuxValueRenderPass : CustomPass
         cmd.SetComputeIntParams(_LuxAverageComputeShader, ShaderProperties._Buffer_Size, m_BufferSize);
         cmd.SetComputeIntParams(_LuxAverageComputeShader, ShaderProperties._Start_Offset, m_StartOffset);
         cmd.SetComputeTextureParam(_LuxAverageComputeShader, 0, ShaderProperties._Number_Texture, _NumberTexture);
+        cmd.SetComputeTextureParam(_LuxAverageComputeShader, 0, ShaderProperties._Tile_Texture, _NumberTileTexture);
         cmd.SetComputeTextureParam(_LuxAverageComputeShader, 0, ShaderProperties._Test_Result, _LuxAverageResource.GetColorRT());
         cmd.DispatchCompute(_LuxAverageComputeShader, 0, threadGroupX, threadGroupY, 1);
     }
@@ -166,6 +168,7 @@ class PrintLuxValueRenderPass : CustomPass
         public static readonly int _Buffer_Size = Shader.PropertyToID("_Buffer_Size");
         public static readonly int _Start_Offset = Shader.PropertyToID("_Start_Offset");
         public static readonly int _Number_Texture = Shader.PropertyToID("_Number_Texture");
+        public static readonly int _Tile_Texture = Shader.PropertyToID("_Tile_Texture");
         public static readonly int _Test_Result = Shader.PropertyToID("_Test_Result");
     }
 }
