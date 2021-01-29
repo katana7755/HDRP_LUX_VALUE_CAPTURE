@@ -31,38 +31,33 @@ public class SharedColorRTResource : ScriptableObject
 
     public void AllocateColorRT(int actualWidth, int actualHeight)
     {   
+        var newActualWidth = -1;
+        var newActualHeigth = -1;
+
         switch (m_RequestedState)
         {
             case RequestedState.Scale:
                 {
-                    ReleaseColorRT();
-                    m_ColorRT = RTHandles.Alloc(m_RequestedScale, 1, dimension: TextureDimension.Tex2D, enableRandomWrite: m_RequestedEnableRandomWrite, colorFormat: _ColorRTFormat, autoGenerateMips: false, useDynamicScale: false, name: name);
-                    
-                    var size = m_ColorRT.GetScaledSize(new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight));
-                    m_ActualWidth = size.x;
-                    m_ActualHeight = size.y;
+                    newActualWidth = Mathf.Max(Mathf.RoundToInt(RTHandles.maxWidth * m_RequestedScale.x), 1);
+                    newActualHeigth = Mathf.Max(Mathf.RoundToInt(RTHandles.maxHeight * m_RequestedScale.y), 1);
                 }
                 break;
 
             case RequestedState.Size:
                 {
-                    ReleaseColorRT();
-
-                    // [Warning]    
-                    // Here we need to consider when width is shorter than height...                        
-                    // float ratio = (float)m_RequestedSize.y / RTHandles.maxHeight;
-                    // m_ColorRT = RTHandles.Alloc(Vector2.one * ratio, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: _ColorRTFormat, autoGenerateMips: false, useDynamicScale: false, name: name);
-
-                    // var size = m_ColorRT.GetScaledSize(new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight));
-                    // m_ActualWidth = size.x;
-                    // m_ActualHeight = size.y;
-
                     var ratio = (float)actualWidth / actualHeight;
-                    m_ActualWidth = Mathf.CeilToInt(m_RequestedSize.y * ratio);
-                    m_ActualHeight = m_RequestedSize.y;
-                    m_ColorRT = RTHandles.Alloc(m_ActualWidth, m_ActualHeight, 1, dimension: TextureDimension.Tex2D, enableRandomWrite: m_RequestedEnableRandomWrite, colorFormat: _ColorRTFormat, autoGenerateMips: false, useDynamicScale: false, name: name);
+                    newActualWidth = Mathf.CeilToInt(m_RequestedSize.y * ratio);
+                    newActualHeigth = m_RequestedSize.y;
                 }
                 break;
+        }
+
+        if (m_ActualWidth != newActualWidth || m_ActualHeight != newActualHeigth)
+        {
+            ReleaseColorRT();
+            m_ActualWidth = newActualWidth;
+            m_ActualHeight = newActualHeigth;
+            m_ColorRT = RTHandles.Alloc(m_ActualWidth, m_ActualHeight, 1, dimension: TextureDimension.Tex2D, enableRandomWrite: m_RequestedEnableRandomWrite, colorFormat: _ColorRTFormat, autoGenerateMips: false, useDynamicScale: false, name: name);
         }
     }
 

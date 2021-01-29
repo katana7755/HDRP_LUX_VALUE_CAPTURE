@@ -5,7 +5,6 @@ using UnityEngine.Experimental.Rendering;
 
 public class LuxViewerController : MonoBehaviour
 {
-    [SerializeField] private Camera _TopViewCamera = null;
     [SerializeField] private GameObject _QuadViewerGO = null;
     [SerializeField] private GameObject[] _QuadBakerGOs = null;
     [SerializeField] private SharedColorRTResource _LuxValueResource = null;
