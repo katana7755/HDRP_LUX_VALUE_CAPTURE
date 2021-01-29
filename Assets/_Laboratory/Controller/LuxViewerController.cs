@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
 public class LuxViewerController : MonoBehaviour
@@ -15,7 +16,7 @@ public class LuxViewerController : MonoBehaviour
     [SerializeField] private QuadMode _QuadMode = QuadMode.Viwerer;
 
     private void Start()
-    {       
+    {    
         m_QuadBakerInstances = new QuadBakerInstance[_QuadBakerGOs.Length];
 
         for (var i = 0; i < _QuadBakerGOs.Length; ++i)
@@ -29,6 +30,7 @@ public class LuxViewerController : MonoBehaviour
     private void OnEnable()
     {
         StartCoroutine(ProcessingGenerateTexturesSequence());
+        StartCoroutine(ProcessingValidateCamera());
     }
 
     private void OnDisable()
@@ -47,6 +49,11 @@ public class LuxViewerController : MonoBehaviour
         if (Vector3.Distance(transform.localScale, Vector3.one) > Mathf.Epsilon)
         {
             ErrorMessage("The controller should have identity scale meaning (1.0f, 1.0f, 1.0f)");
+        }
+
+        if (_CaptureToolsRoot.GetComponent<Camera>() == null)
+        {
+            ErrorMessage("CaptureToolsRoot must conatin Camera component");
         }
 
         ValidateRenderingMode();
@@ -158,6 +165,25 @@ public class LuxViewerController : MonoBehaviour
         }
     }
 
+    private IEnumerator ProcessingValidateCamera()
+    {
+        var captureCamera = _CaptureToolsRoot.GetComponent<Camera>();   
+        var width = -1;
+        var height = -1;
+
+        while (true)
+        {
+            while (width == captureCamera.pixelWidth && height == captureCamera.pixelHeight)
+            {
+                yield return null;
+            }
+
+            width = captureCamera.pixelWidth;
+            height = captureCamera.pixelHeight;
+            captureCamera.orthographicSize = (width < height) ? QUAD_SIZE * 0.5f * height / width : QUAD_SIZE * 0.5f;
+        }
+    }
+
     private void GenerateTexture(SharedColorRTResource colorRTResource, ref Texture2D texture)
     {       
         if (texture != null)
@@ -168,17 +194,27 @@ public class LuxViewerController : MonoBehaviour
 
         RenderTexture.active = colorRTResource.GetColorRT();
 
-        // [Warning]    
-        // Here we need to consider when width is shorter than height...
         var colorRT = colorRTResource.GetColorRT();
         var actualWidth = colorRTResource.GetActualWidth();
         var actualHeight = colorRTResource.GetActualHeight();
-        var textureSize = new Vector2Int(actualHeight, actualHeight);
         var center = new Vector2Int(actualWidth / 2, actualHeight / 2);
-        var halfHeight = actualHeight / 2;
-        texture = new Texture2D(actualHeight, actualHeight, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
-        texture.ReadPixels(new Rect(center.x - halfHeight + ((actualWidth % 2 == 0) ? -1 : 0), 0f, actualHeight, actualHeight), 0, 0);
-        texture.Apply();         
+
+        if (actualWidth >= actualHeight)
+        {
+            var textureSize = actualHeight;
+            var halfSize = actualHeight / 2;
+            texture = new Texture2D(textureSize, textureSize, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
+            texture.ReadPixels(new Rect(center.x - halfSize, 0f, textureSize, textureSize), 0, 0);
+            texture.Apply();         
+        }
+        else
+        {
+            var textureSize = actualWidth;
+            var halfSize = actualWidth / 2;
+            texture = new Texture2D(textureSize, textureSize, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
+            texture.ReadPixels(new Rect(0f, center.y - halfSize + ((actualHeight % 2 == 1) ? 1 : 0), textureSize, textureSize), 0, 0);
+            texture.Apply();         
+        }
     }
 
     private void ValidateGraphicsResources()

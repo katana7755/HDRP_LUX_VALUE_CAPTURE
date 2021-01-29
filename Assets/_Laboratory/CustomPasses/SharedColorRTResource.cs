@@ -45,9 +45,18 @@ public class SharedColorRTResource : ScriptableObject
 
             case RequestedState.Size:
                 {
-                    var ratio = (float)actualWidth / actualHeight;
-                    newActualWidth = Mathf.CeilToInt(m_RequestedSize.y * ratio);
-                    newActualHeigth = m_RequestedSize.y;
+                    if (actualWidth >= actualHeight)
+                    {
+                        var ratio = (float)actualWidth / actualHeight;
+                        newActualWidth = Mathf.CeilToInt(m_RequestedSize.y * ratio);
+                        newActualHeigth = m_RequestedSize.y;
+                    }
+                    else
+                    {
+                        var ratio = (float)actualHeight / actualWidth;
+                        newActualWidth = m_RequestedSize.x;
+                        newActualHeigth = Mathf.CeilToInt(m_RequestedSize.x * ratio);
+                    }
                 }
                 break;
         }

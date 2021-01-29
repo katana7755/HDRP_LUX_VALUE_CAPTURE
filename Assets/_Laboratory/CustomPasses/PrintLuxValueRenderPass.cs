@@ -137,10 +137,11 @@ class PrintLuxValueRenderPass : CustomPass
 
         // 3) Calculate average lux values in a compute shader
         var sampleCount = LuxViewerController.SAMPLE_COUNT_PER_ROW;
-        var tileCount = (valueRT.referenceSize.y + sampleCount - 1) / sampleCount;
-        var gridSize = tileCount * sampleCount;
-        var threadGroupX = tileCount;
-        var threadGroupY = tileCount;
+        var shorterSize = (valueRT.referenceSize.x < valueRT.referenceSize.y) ? valueRT.referenceSize.x : valueRT.referenceSize.y;
+        var tileCountPerRow = (shorterSize + sampleCount - 1) / sampleCount;
+        var gridSize = tileCountPerRow * sampleCount;
+        var threadGroupX = tileCountPerRow;
+        var threadGroupY = tileCountPerRow;
         m_BufferSize[0] = valueRT.referenceSize.x;
         m_BufferSize[1] = valueRT.referenceSize.y;
         m_StartOffset[0] = (valueRT.referenceSize.x - gridSize) / 2;
