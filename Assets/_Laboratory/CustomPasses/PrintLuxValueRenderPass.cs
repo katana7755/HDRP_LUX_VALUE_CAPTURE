@@ -24,6 +24,12 @@ class PrintLuxValueRenderPass : CustomPass
             return;
         }
 
+        if ((_LayerMask & (1 << _Controller.gameObject.layer)) == 0)
+        {            
+            ErrorMessage("You need to set LayerMask properly by adding new layer and setting the layer for all gameobjects under the controller");
+            return;
+        }
+
         if (_LuxAverageComputeShader == null)
         {
             ErrorMessage("LuxAverageComputeShader needs to be set");
@@ -113,6 +119,13 @@ class PrintLuxValueRenderPass : CustomPass
             overrideMaterialPassIndex = m_LuxValuePassIndex,
             layerMask = _LayerMask,            
         };
+        var rendererList = RendererList.Create(description);
+
+        if (!rendererList.isValid)
+        {
+            return;
+        }
+
         CoreUtils.SetRenderTarget(cmd, valueRT, ClearFlag.Color, _ClearLuxValue);        
         HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(description));
 
