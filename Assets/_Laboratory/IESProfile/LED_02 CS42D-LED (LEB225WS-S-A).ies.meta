@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: c2708123033fd8349b2aa26feb83b980
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 9801397f829a1ed42984340315cbf362, type: 3}
+  iesMetaData:
+    FileFormatVersion: LM-63-1995
+    IESPhotometricType: Type C
+    IESMaximumIntensity: 5084.06
+    IESMaximumIntensityUnit: Lumens
+    Manufacturer: DAEYANG CO,. LTD.
+    LuminaireCatalogNumber: 
+    LuminaireDescription: LEB225WS-S(LED 25Wx2 SURFACE)
+    LampCatalogNumber: 
+    LampDescription: 
+    PrefabLightType: 0
+    SpotAngle: 120
+    iesSize: 128
+    ApplyLightAttenuation: 1
+    UseIESMaximumIntensity: 1
+    CookieCompression: 2
+    LightAimAxisRotation: -90

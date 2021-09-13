@@ -68,13 +68,14 @@ public class LuxViewerController : MonoBehaviour
     private void OnEnable()
     {
         FindStaticSky();
-        TurnOffStaticSKy();        
+        TurnOffStaticSKy();     
 
 #if UNITY_EDITOR
         if (UnityEditor.EditorApplication.isPlaying == true)
         {
 #endif
 
+        StartCoroutine(ProcessingEnsureToTurnOffStaticSky());
         StartCoroutine(ProcessingGenerateTexturesSequence());
         StartCoroutine(ProcessingValidateCamera());
 
@@ -360,6 +361,11 @@ public class LuxViewerController : MonoBehaviour
 
         var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
 
+        if (!scene.isLoaded)
+        {
+            return;
+        }
+
         foreach (var go in scene.GetRootGameObjects())
         {
             m_StaticSkyComponent = go.GetComponent<UnityEngine.Rendering.HighDefinition.StaticLightingSky>();
@@ -405,6 +411,17 @@ public class LuxViewerController : MonoBehaviour
 
         m_StaticSkyComponent.staticLightingSkyUniqueID = m_StaticSkyUniqueID;        
     }   
+
+    private IEnumerator ProcessingEnsureToTurnOffStaticSky()
+    {
+        while (m_StaticSkyComponent == null)
+        {
+            yield return null;
+
+            FindStaticSky();
+            TurnOffStaticSKy();
+        }
+    }
 
     private bool m_GenerateTexturesFlag = false;
     private QuadBakerInstance[] m_QuadBakerInstances = null;
