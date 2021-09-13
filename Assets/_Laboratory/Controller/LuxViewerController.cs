@@ -1,9 +1,38 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
+// [UnityEditor.InitializeOnLoad]
+// public static class ExternalGPUCapturer
+// {    
+//     static ExternalGPUCapturer()
+//     {
+//         UnityEditor.EditorApplication.playModeStateChanged += StateChanged;
+//     }
+
+//     private static void StateChanged(UnityEditor.PlayModeStateChange change)
+//     {        
+//         switch (change)
+//         {
+//             case UnityEditor.PlayModeStateChange.ExitingPlayMode:
+//                 {
+//                     UnityEngine.Experimental.Rendering.ExternalGPUProfiler.BeginGPUCapture();
+//                 }
+//                 break;
+
+//             case UnityEditor.PlayModeStateChange.EnteredEditMode:
+//                 {
+//                     UnityEngine.Experimental.Rendering.ExternalGPUProfiler.EndGPUCapture();
+//                 }
+//                 break;
+//         }
+//     }
+// }
+
+[ExecuteAlways]
 public class LuxViewerController : MonoBehaviour
 {
     [SerializeField] private GameObject _QuadViewerGO = null;
@@ -17,6 +46,11 @@ public class LuxViewerController : MonoBehaviour
 
     private void Start()
     {    
+#if UNITY_EDITOR
+        if (UnityEditor.EditorApplication.isPlaying == true)
+        {
+#endif
+
         m_QuadBakerInstances = new QuadBakerInstance[_QuadBakerGOs.Length];
 
         for (var i = 0; i < _QuadBakerGOs.Length; ++i)
@@ -25,17 +59,44 @@ public class LuxViewerController : MonoBehaviour
         }
 
         ValidateGraphicsResources();
+
+#if UNITY_EDITOR
+        }   
+#endif                
     }
 
     private void OnEnable()
     {
+        FindStaticSky();
+        TurnOffStaticSKy();        
+
+#if UNITY_EDITOR
+        if (UnityEditor.EditorApplication.isPlaying == true)
+        {
+#endif
+
         StartCoroutine(ProcessingGenerateTexturesSequence());
         StartCoroutine(ProcessingValidateCamera());
+
+#if UNITY_EDITOR
+        }   
+#endif        
     }
 
     private void OnDisable()
     {
+#if UNITY_EDITOR
+        if (UnityEditor.EditorApplication.isPlaying == true)
+        {
+#endif
+
         StopAllCoroutines();
+
+#if UNITY_EDITOR
+        }   
+#endif        
+        
+        TurnOnStaticSky();
     }
 
 #if UNITY_EDITOR
@@ -62,7 +123,7 @@ public class LuxViewerController : MonoBehaviour
 
     private void OnGUI()
     {
-        if (!UnityEditor.EditorApplication.isPlaying)
+        if (UnityEditor.EditorApplication.isPlaying == false)
         {
             return;
         }
@@ -151,6 +212,7 @@ public class LuxViewerController : MonoBehaviour
                     var frameBuffer = RenderTexture.active;
                     GenerateTexture(_LuxColorResource, ref bakerInstance._ColorTexture);
                     GenerateTexture(_LuxAverageResource, ref bakerInstance._AverageTexture);
+
                     RenderTexture.active = frameBuffer;
                 }
 
@@ -291,12 +353,68 @@ public class LuxViewerController : MonoBehaviour
         Debug.LogError($"[LuxViewerController] {msg}");
     }     
 
+    private void FindStaticSky()
+    {        
+        m_StaticSkyComponent = null;
+        m_StaticSkyUniqueID = 0;
+
+        var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+
+        foreach (var go in scene.GetRootGameObjects())
+        {
+            m_StaticSkyComponent = go.GetComponent<UnityEngine.Rendering.HighDefinition.StaticLightingSky>();
+
+            if (m_StaticSkyComponent != null)
+            {
+                break;
+            }
+        }
+
+        if (m_StaticSkyComponent == null)
+        {
+            var candidates = GameObject.FindObjectsOfType<UnityEngine.Rendering.HighDefinition.StaticLightingSky>().Where(sls => sls.gameObject.scene == scene);
+
+            if (candidates.Count() > 0)
+            {
+                m_StaticSkyComponent = candidates.First();
+            }                
+        }
+
+        if (m_StaticSkyComponent != null)
+        {
+            m_StaticSkyUniqueID = m_StaticSkyComponent.staticLightingSkyUniqueID;
+        }
+    }
+
+    private void TurnOffStaticSKy()
+    {      
+        if (m_StaticSkyComponent == null)  
+        {
+            return;
+        }
+
+        m_StaticSkyComponent.staticLightingSkyUniqueID = 0;
+    }
+
+    private void TurnOnStaticSky()
+    {        
+        if (m_StaticSkyComponent == null)  
+        {
+            return;
+        }
+
+        m_StaticSkyComponent.staticLightingSkyUniqueID = m_StaticSkyUniqueID;        
+    }   
+
     private bool m_GenerateTexturesFlag = false;
     private QuadBakerInstance[] m_QuadBakerInstances = null;
+    private UnityEngine.Rendering.HighDefinition.StaticLightingSky m_StaticSkyComponent = null;
+    private int m_StaticSkyUniqueID = 0;
 
     public const int SAMPLE_COUNT_PER_ROW = 32;
     private const float QUAD_SIZE = 10f; // 10 meter
 
+    private static readonly WaitForSeconds s_WaitForSeconds = new WaitForSeconds(0.333f);
     private static readonly WaitForEndOfFrame s_WaitForEndOfFrame = new WaitForEndOfFrame();
 
     private enum QuadMode
