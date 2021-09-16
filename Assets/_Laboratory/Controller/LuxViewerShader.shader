@@ -2,20 +2,6 @@
 {
     Properties
     {
-        // ******************** [JHLEE] Added ********************
-        _Item0_Lux("Item0 Lux", Float) = 20.0
-        _Item0_Color("Item0 Color", Color) = (1.0, 0.0, 0.0, 1.0)
-        _Item1_Lux("Item1 Lux", Float) = 30.0
-        _Item1_Color("Item1 Color", Color) = (1.0, 0.5, 0.0, 1.0)
-        _Item2_Lux("Item2 Lux", Float) = 50.0
-        _Item2_Color("Item2 Color", Color) = (1.0, 1.0, 0.0, 1.0)
-        _Item3_Lux("Item3 Lux", Float) = 75.0
-        _Item3_Color("Item3 Color", Color) = (0.0, 1.0, 0.0, 1.0)
-        _Item4_Lux("Item4 Lux", Float) = 100.0
-        _Item4_Color("Item4 Color", Color) = (0.0, 1.0, 0.5, 1.0)
-        _ItemEtc_Color("ItemEtc Color", Color) = (0.0, 1.0, 1.0, 1.0)
-        // ******************** [JHLEE] Added ********************
-
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -331,10 +317,7 @@
     //-------------------------------------------------------------------------------------
 
     // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
-
-    // ********** [UTK] Added **********
-    #include "LuxViewerProperties.hlsl"
-    // ********** [UTK] Added **********
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitProperties.hlsl"
 
     // TODO:
     // Currently, Lit.hlsl and LitData.hlsl are included for every pass. Split Lit.hlsl in two:
@@ -857,6 +840,10 @@
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
 
+            // ********** [UTK] Added **********
+            #include "../CustomPasses/LuxToColorLUT.hlsl"
+            // ********** [UTK] Added **********            
+
             #pragma vertex Vert
             // ********** [UTK] Removed **********
             //#pragma fragment Frag
@@ -1024,30 +1011,9 @@ void FragCustom(PackedVaryingsToPS packedInput,
             }
 #endif
 
-            if (diffuseLighting.x < _Item0_Lux)
-            {
-                outColor = _Item0_Color;
-            }
-            else if (diffuseLighting.x < _Item1_Lux)
-            {
-                outColor = _Item1_Color;
-            }
-            else if (diffuseLighting.x < _Item2_Lux)
-            {
-                outColor = _Item2_Color;
-            }
-            else if (diffuseLighting.x < _Item3_Lux)
-            {
-                outColor = _Item3_Color;
-            }                      
-            else if (diffuseLighting.x < _Item4_Lux)
-            {
-                outColor = _Item4_Color;
-            }                         
-            else
-            {
-                outColor = _ItemEtc_Color;
-            }                
+            // ********** [UTK] Added **********
+            outColor = GetColorFromLux(diffuseLighting.x);
+            // ********** [UTK] Added **********
         }
 
 #ifdef DEBUG_DISPLAY
@@ -1382,5 +1348,5 @@ void FragCustom(PackedVaryingsToPS packedInput,
         }
     }
     //CustomEditor "Rendering.HighDefinition.LitGUI"
-    CustomEditor "LuxPrinterShaderGUI"
+    CustomEditor "LuxViewerShaderGUI"
 }

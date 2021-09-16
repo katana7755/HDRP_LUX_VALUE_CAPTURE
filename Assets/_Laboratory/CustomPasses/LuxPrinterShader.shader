@@ -2,20 +2,6 @@
 {
     Properties
     {
-        // ******************** [JHLEE] Added ********************
-        _Item0_Lux("Item0 Lux", Float) = 20.0
-        _Item0_Color("Item0 Color", Color) = (1.0, 0.0, 0.0, 1.0)
-        _Item1_Lux("Item1 Lux", Float) = 30.0
-        _Item1_Color("Item1 Color", Color) = (1.0, 0.5, 0.0, 1.0)
-        _Item2_Lux("Item2 Lux", Float) = 50.0
-        _Item2_Color("Item2 Color", Color) = (1.0, 1.0, 0.0, 1.0)
-        _Item3_Lux("Item3 Lux", Float) = 75.0
-        _Item3_Color("Item3 Color", Color) = (0.0, 1.0, 0.0, 1.0)
-        _Item4_Lux("Item4 Lux", Float) = 100.0
-        _Item4_Color("Item4 Color", Color) = (0.0, 1.0, 0.5, 1.0)
-        _ItemEtc_Color("ItemEtc Color", Color) = (0.0, 1.0, 1.0, 1.0)
-        // ******************** [JHLEE] Added ********************
-
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -1096,18 +1082,8 @@ void FragCustom(PackedVaryingsToPS packedInput,
             #pragma fragment FullScreenPass
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl" 
+            #include "LuxToColorLUT.hlsl"
 
-            float _Item0_Lux;
-            float4 _Item0_Color;
-            float _Item1_Lux;
-            float4 _Item1_Color;
-            float _Item2_Lux;
-            float4 _Item2_Color;
-            float _Item3_Lux;
-            float4 _Item3_Color;
-            float _Item4_Lux;
-            float4 _Item4_Color;
-            float4 _ItemEtc_Color;
             Texture2D _Lux_Value_Buffer;
             float2 _Lux_Value_RT_Scale;
 
@@ -1125,30 +1101,10 @@ void FragCustom(PackedVaryingsToPS packedInput,
                 {
                     color = float4(0.0, 0.0, 0.0, 0.0);
                 }
-                else if (luxValue.x < _Item0_Lux)
-                {
-                    color = _Item0_Color;
-                }
-                else if (luxValue.x < _Item1_Lux)
-                {
-                    color = _Item1_Color;
-                }
-                else if (luxValue.x < _Item2_Lux)
-                {
-                    color = _Item2_Color;
-                }
-                else if (luxValue.x < _Item3_Lux)
-                {
-                    color = _Item3_Color;
-                }                      
-                else if (luxValue.x < _Item4_Lux)
-                {
-                    color = _Item4_Color;
-                }                         
                 else
                 {
-                    color = _ItemEtc_Color;
-                }                
+                    color = GetColorFromLux(luxValue.x);
+                }
 
                 return color;
             }                       

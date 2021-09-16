@@ -71,6 +71,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _LuxToColor_TableMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -197,6 +201,8 @@ Material:
     - _Item3_Lux: 75
     - _Item4_Lux: 100
     - _LinkDetailsWithBase: 1
+    - _LuxToColor_Count: 6
+    - _LuxToColor_Delta: 0.16666667
     - _MaterialID: 1
     - _Metallic: 0
     - _MetallicRemapMax: 1
