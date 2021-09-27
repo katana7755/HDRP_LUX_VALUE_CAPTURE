@@ -1,0 +1,75 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+
+//#define SAMPLE_COUNT_PER_ROW 32                 // sample count per one meter
+//#define INVERSE_OF_SAMPLE_COUNT_PER_ROW 0.03125 // (1 / 32)
+
+TEXTURE2D(_InputTexture);
+float4 _InputInfo;      // start xy, end xy
+float4 _InputExtraInfo; // fraction xy, size xy
+RW_TEXTURE2D(float4, _OutputTexture);
+float4 _OutputInfo;     // start xy, end xy
+
+bool IsOutsideOfOutputRect(uint3 id)
+{    
+    float x = _OutputInfo.x + (float)id.x;
+    float y = _OutputInfo.y + (float)id.y;
+
+    if (x > _OutputInfo.z)
+    {
+        return true;
+    }
+
+    if (y > _OutputInfo.w)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+uint2 GetOutputCoordinate(uint3 id)
+{    
+    return uint2(_OutputInfo.x + id.x, _OutputInfo.y + id.y);
+}
+
+float4 GetInputColor(uint3 id, uint2 offset)
+{
+    float2 pixelCoords = float2(_InputInfo.x + (float)id.x, _InputInfo.y + (float)id.y);
+    
+    if (pixelCoords.x < 0.0 || pixelCoords.x > _InputExtraInfo.z)
+    {
+        return float4(0.0, 0.0, 0.0, 0.0);
+    }
+
+    if (pixelCoords.y < 0.0 || pixelCoords.y > _InputExtraInfo.w)
+    {
+        return float4(0.0, 0.0, 0.0, 0.0);
+    }    
+
+    return _InputTexture[uint2(pixelCoords.x, pixelCoords.y)];
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (IsOutsideOfOutputRect(id))
+    {
+        return;
+    }
+
+    uint2 outputCoord = GetOutputCoordinate(id);
+    float4 color00 = GetInputColor(id, uint2(0, 0));
+    float4 color01 = GetInputColor(id, uint2(0, 1));
+    float4 color10 = GetInputColor(id, uint2(1, 0));
+    float4 color11 = GetInputColor(id, uint2(1, 1));
+    
+    color00 = lerp(color00, color01, _InputExtraInfo.y);
+    color10 = lerp(color10, color11, _InputExtraInfo.y);
+    color00 = lerp(color00, color10, _InputExtraInfo.x);
+
+    _OutputTexture[outputCoord] = float4(color00.xyz, 1.0);
+}
