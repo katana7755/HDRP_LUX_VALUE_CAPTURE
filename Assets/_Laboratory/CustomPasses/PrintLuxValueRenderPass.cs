@@ -61,7 +61,7 @@ class PrintLuxValueRenderPass : CustomPass
             new ShaderTagId("SRPDefaultUnlit"),
             new ShaderTagId(""),
         };
-        m_LuxValuePassIndex = _LuxPrintMaterial.FindPass("Forward");
+        m_LuxValuePassIndex = _LuxPrintMaterial.FindPass("ForwardOnly");
         m_LuxToColorPassIndex = _LuxPrintMaterial.FindPass("LuxToColor");
         m_LuxToColorProperties = new MaterialPropertyBlock();
         m_BufferSize = new int[2];

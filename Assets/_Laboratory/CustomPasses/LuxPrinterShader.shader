@@ -763,8 +763,9 @@
 
         Pass
         {
-            Name "Forward"
-            Tags { "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
+            // [UTK] changed from "Forward" to "ForwardOnly"
+            Name "ForwardOnly"
+            Tags { "LightMode" = "ForwardOnly" } // This will be only for transparent object based on the RenderQueue index
 
             Stencil
             {
@@ -834,7 +835,12 @@
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+            // ********** [UTK] Added **********
+            #include "Assets/_Laboratory/ShaderInclude/MyLightLoop.hlsl"
+            // ********** [UTK] Added **********
+            // ********** [UTK] Removed **********
+            //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+            // ********** [UTK] Removed **********
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
@@ -983,11 +989,16 @@ void FragCustom(PackedVaryingsToPS packedInput,
         else
 #endif
         {
-#ifdef _SURFACE_TYPE_TRANSPARENT
-            uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
-#else
+            // ********** [UTK] Removed **********
+// #ifdef _SURFACE_TYPE_TRANSPARENT
+//             uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
+// #else
+            // ********** [UTK] Removed **********
             uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
-#endif
+            // ********** [UTK] Removed **********
+// #endif
+            // ********** [UTK] Removed **********
+
             LightLoopOutput lightLoopOutput;
             LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
@@ -1082,7 +1093,7 @@ void FragCustom(PackedVaryingsToPS packedInput,
             #pragma fragment FullScreenPass
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl" 
-            #include "LuxToColorLUT.hlsl"
+            #include "Assets/_Laboratory/ShaderInclude/LuxToColorLUT.hlsl"
 
             Texture2D _Lux_Value_Buffer;
             float2 _Lux_Value_RT_Scale;
@@ -1394,6 +1405,6 @@ void FragCustom(PackedVaryingsToPS packedInput,
             ENDHLSL
         }
     }
-    //CustomEditor "Rendering.HighDefinition.LitGUI"
+    // CustomEditor "Rendering.HighDefinition.LitGUI"
     CustomEditor "LuxPrinterShaderGUI"
 }

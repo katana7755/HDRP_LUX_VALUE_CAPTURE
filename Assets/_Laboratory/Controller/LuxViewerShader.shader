@@ -763,8 +763,9 @@
 
         Pass
         {
-            Name "Forward"
-            Tags { "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
+            // [UTK] changed from "Forward" to "ForwardOnly"
+            Name "ForwardOnly"
+            Tags { "LightMode" = "ForwardOnly" } // This will be only for transparent object based on the RenderQueue index
 
             Stencil
             {
@@ -811,6 +812,7 @@
             // ********** [UTK] Added **********
 
             #define SHADERPASS SHADERPASS_FORWARD
+
             // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
             // Don't do it with debug display mode as it is possible there is no depth prepass in this case
             #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
@@ -834,15 +836,16 @@
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
-
+            // ********** [UTK] Added **********
+            #include "Assets/_Laboratory/ShaderInclude/LuxToColorLUT.hlsl"
+            #include "Assets/_Laboratory/ShaderInclude/MyLightLoop.hlsl"
+            // ********** [UTK] Added **********
+            // ********** [UTK] Removed **********
+            // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+            // ********** [UTK] Removed **********
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
-
-            // ********** [UTK] Added **********
-            #include "../CustomPasses/LuxToColorLUT.hlsl"
-            // ********** [UTK] Added **********            
 
             #pragma vertex Vert
             // ********** [UTK] Removed **********
@@ -984,11 +987,16 @@ void FragCustom(PackedVaryingsToPS packedInput,
         else
 #endif
         {
-#ifdef _SURFACE_TYPE_TRANSPARENT
-            uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
-#else
+            // ********** [UTK] Removed **********
+// #ifdef _SURFACE_TYPE_TRANSPARENT
+//             uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
+// #else
+            // ********** [UTK] Removed **********
             uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
-#endif
+            // ********** [UTK] Removed **********
+// #endif
+            // ********** [UTK] Removed **********
+
             LightLoopOutput lightLoopOutput;
             LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
@@ -1347,6 +1355,6 @@ void FragCustom(PackedVaryingsToPS packedInput,
             ENDHLSL
         }
     }
-    //CustomEditor "Rendering.HighDefinition.LitGUI"
+    // CustomEditor "Rendering.HighDefinition.LitGUI"
     CustomEditor "LuxViewerShaderGUI"
 }

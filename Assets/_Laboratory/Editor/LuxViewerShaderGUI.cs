@@ -8,9 +8,9 @@ public class LuxViewerShaderGUI : ShaderGUI
         EditorGUILayout.HelpBox("Go to the Generate Lux To Color LUT render pass", MessageType.Warning);
 
         var material = materialEditor.target as Material;
-        if (material.renderQueue != 3050)
+        if (material.renderQueue != 2499)
         {
-            material.renderQueue = 3050;            
+            material.renderQueue = 2499;            
         }
     }
 }
